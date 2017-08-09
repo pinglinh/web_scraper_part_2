@@ -12,18 +12,17 @@ review_links = review_links.reject do |link|
   link.href =~ /popular/ || link.href =~ /page/
 end
 
-review_links = review_links[0...40]
+review_links = review_links[0...4]
 
 reviews = review_links.map do |link|
   review = link.click
-  review_meta = review.search("#main .review-meta .info")
-  artist = review_meta.search("h1")[0].text
-  album = review_meta.search("h2")[0].text
-  label, year = review_meta.search("h3")[0].text.split(";").map(&:strip)
-    # same as .map{ |x| x.strip }
-  reviewer = review_meta.search("h4 address")[0].text
-  review_date = Date.parse(review_meta.search(".pub-date")[0].text)
-  score = review_meta.search(".score").text.to_f
+  artist = review.search(".artists a")[0].text
+  album = review.search(".review-title")[0].text
+  label = review.search(".labels-list__item")[0].text
+  year = review.search(".year")[0].text
+  reviewer = review.search(".authors a").text
+  review_date = Date.parse(review.search(".pub-date").attribute("datetime").value)
+  score = review.search(".score").text.to_f
   {
     artist: artist,
     album: album,
@@ -35,4 +34,6 @@ reviews = review_links.map do |link|
   }
 end
 
-puts JSON.pretty_generate(reviews)
+data = JSON.pretty_generate(reviews)
+
+File.write("data.json", data)
